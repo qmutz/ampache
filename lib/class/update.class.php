@@ -214,6 +214,9 @@ class Update
         $version[]     = array('version' => '400012', 'description' => $update_string);
 
 
+        $update_string = "Cache the catalog for objects to speed up filtering<br /><br />";
+        $version[]     = array('version' => '400013', 'description' => $update_string);
+
         return $version;
     }
 
@@ -1220,6 +1223,29 @@ class Update
         $retval = true;
         $sql    = "ALTER TABLE `user` ADD `rsstoken` VARCHAR(255) NULL;";
         $retval &= Dba::write($sql);
+
+        return $retval;
+    }
+
+    /**
+     * update_400013
+     *
+     * Cache the catalog for objects to speed up filtering
+     */
+    public static function update_400013()
+    {
+        $retval = true;
+
+        $tables = [ 'cache_object_catalog', 'cache_object_catalog_run' ];
+        foreach ($tables as $table) {
+            $sql = "CREATE TABLE IF NOT EXISTS `" . $table . "` (" .
+                "`object_id` int(11) unsigned NOT NULL," .
+                "`object_type` enum('album','artist','song','playlist','genre','catalog','live_stream','video','podcast_episode') CHARACTER SET utf8 NOT NULL," .
+                "`catalog` int(11) unsigned NOT NULL DEFAULT '0'," .
+                "PRIMARY KEY (`object_id`, `object_type`, `catalog`)" .
+                ") ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
+            $retval &= Dba::write($sql);
+        }
 
         return $retval;
     }
